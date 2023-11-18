@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { Request } from 'express';
 import * as nodemailer from 'nodemailer';
 
@@ -9,6 +9,7 @@ export class MailService {
     number,
     { code: number; expires: number }
   >(); // 인증 번호 및 만료 시간 관리
+  private readonly logger = new Logger(MailService.name);
 
   constructor() {
     this.transporter = nodemailer.createTransport({
@@ -28,6 +29,7 @@ export class MailService {
 
   async sendMail(to: string, subject: string, req: Request) {
     try {
+      const startTime = new Date(); // 메일 전송 시작 시간 기록
       const email = req.body.to;
       // console.log('이메일 확인 샌드 메일:', email);
 
@@ -54,6 +56,14 @@ export class MailService {
         인증 번호: ${verificationCode} 
         만료기간: ${new Date(expires)}`,
       });
+
+      const endTime = new Date(); // 메일 전송 종료 시간 기록
+      const elapsedTime = endTime.getTime() - startTime.getTime(); // 전송에 걸린 시간 계산
+
+      // Log success with elapsed time
+      this.logger.log(
+        `Verification email sent successfully to: ${email}. Elapsed Time: ${elapsedTime}ms`
+      );
     } catch (error) {
       throw new HttpException(
         '메일 전송 중 오류가 발생했습니다',
