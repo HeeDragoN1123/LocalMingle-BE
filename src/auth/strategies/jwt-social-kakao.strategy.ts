@@ -1,7 +1,7 @@
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-kakao';
 import * as bcrypt from 'bcrypt';
-import { PrismaService } from '../../prisma/prisma.service'; // 프리즈마 서비스 파일 경로를 사용하는 경로로 수정해야 합니다.
+import { PrismaService } from '../../prisma/prisma.service';
 import { Inject } from '@nestjs/common';
 
 export class JwtKakaoStrategy extends PassportStrategy(Strategy, 'kakao') {
@@ -18,11 +18,6 @@ export class JwtKakaoStrategy extends PassportStrategy(Strategy, 'kakao') {
   }
 
   async validate(accessToken: string, refreshToken: string, profile: any) {
-    // console.log('카카오에서 주는 accessToken:' + accessToken);
-    // console.log('카카오에서 주는 refreshToken:' + refreshToken);
-    // console.log('카카오 프로필', profile);
-    // console.log(profile._json.kakao_account.email);
-
     // 비밀번호 암호화
     const hashedPassword = await bcrypt.hash(profile.id.toString(), 10);
 

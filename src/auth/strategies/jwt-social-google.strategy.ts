@@ -1,7 +1,7 @@
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-google-oauth20';
 import * as bcrypt from 'bcrypt';
-import { PrismaService } from '../../prisma/prisma.service'; // 프리즈마 서비스 파일 경로를 사용하는 경로로 수정해야 합니다.
+import { PrismaService } from '../../prisma/prisma.service';
 import { Inject } from '@nestjs/common';
 
 // @Injectable()
@@ -19,10 +19,6 @@ export class JwtGoogleStrategy extends PassportStrategy(Strategy, 'google') {
   }
 
   async validate(accessToken: string, refreshToken: string, profile: any) {
-    // console.log('google 엑세스토큰:', accessToken);
-    // console.log('google 리프레시 토큰:', refreshToken);
-    // console.log('google 프로필:', profile);
-
     // 비밀번호 암호화
     const hashedPassword = await bcrypt.hash(profile.id.toString(), 10);
 

@@ -1,7 +1,7 @@
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, Profile } from 'passport-naver-v2';
 import * as bcrypt from 'bcrypt';
-import { PrismaService } from '../../prisma/prisma.service'; // 프리즈마 서비스 파일 경로를 사용하는 경로로 수정해야 합니다.
+import { PrismaService } from '../../prisma/prisma.service';
 import { Inject } from '@nestjs/common';
 
 export class JwtNaverStrategy extends PassportStrategy(Strategy, 'naver') {
@@ -18,11 +18,6 @@ export class JwtNaverStrategy extends PassportStrategy(Strategy, 'naver') {
   }
 
   async validate(accessToken: string, refreshToken: string, profile: Profile) {
-    // console.log('네이버에서 주는 accessToken:' + accessToken);
-    // console.log('네이버에서 주는 refreshToken:' + refreshToken);
-    // console.log(profile);
-    // console.log(profile.email);
-
     // 비밀번호 암호화
     const hashedPassword = await bcrypt.hash(profile.id.toString(), 10);
 
@@ -54,9 +49,7 @@ export class JwtNaverStrategy extends PassportStrategy(Strategy, 'naver') {
 
       const anonymousName = `${anonymousPrefix}${randomString}`;
 
-      //return anonymousName; // 밑의 로직이 작동안하면 임시적으로 사용
-
-      // // 프리즈마를 사용하여 중복 확인
+      // 프리즈마를 사용하여 중복 확인
       const existingUser = await this.prisma.userDetail.findUnique({
         where: { nickname: anonymousName },
       });
