@@ -82,10 +82,10 @@ export class AuthService {
     });
 
     // 리프레시 토큰이 유효하다면 새로운 액세스 토큰을 발급
-    const userId = decodedToken.sub; // 추출된 사용자 ID
+    const userId = decodedToken.sub;
 
     const newAccessToken = this.getAccessToken({
-      user: { userId }, // 사용자 ID를 전달
+      user: { userId },
     });
     return newAccessToken;
   }
@@ -95,7 +95,7 @@ export class AuthService {
     refreshToken: string;
   }> {
     // 1. 회원조회
-    let user = await this.usersService.findByEmail({ email: req.user.email }); // user를 찾아서
+    let user = await this.usersService.findByEmail({ email: req.user.email });
 
     //2. 사용자가 없으면 회원가입
     if (!user) {
@@ -117,8 +117,8 @@ export class AuthService {
     }
 
     // 3. 회원가입이 되어 있다면? 로그인(AT, RT를 생성해서 브라우저에 전송)한다
-    const accessToken = this.getAccessToken({ user }); // res를 전달
-    const refreshToken = this.setRefreshToken({ user }); // res를 전달
+    const accessToken = this.getAccessToken({ user });
+    const refreshToken = this.setRefreshToken({ user });
     // 4. 로그인이 되면 DB에 리프레시 토큰을 저장한다.
     await this.prisma.user.update({
       where: { userId: user.userId },
