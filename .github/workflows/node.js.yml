@@ -1,0 +1,115 @@
+# GitHub Actions 워크플로우 설정
+# 이 워크플로우는 Node.js 프로젝트를 빌드하고 AWS CodeDeploy를 통해 배포하는 과정을 수행합니다.
+# 작성에서 가장 중요한 건 줄 간격임!!!! 매우 중요!!!! 이거 안 맞으면 무조건 에러남!!!!
+
+# 워크플로우의 이름 설정
+name: nest_lm CI 
+
+on:
+  # 코드가 'main' 브랜치로 push 될 때만 워크플로우가 실행됨
+  push: 
+    branches: [ "main" ]
+  
+# workflow 환경변수 설정 
+env:
+  PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
+  BUCKET_NAME: ${{ secrets.BUCKET_NAME }}
+  CODE_DEPLOY_APP_NAME: ${{ secrets.CODE_DEPLOY_APP_NAME }}
+  DEPLOYMENT_GROUP_NAME: ${{ secrets.DEPLOYMENT_GROUP_NAME }}
+
+# jobs 는 job 의 집합 - 깃액션에서 폴더 형식으로 구분되는 것이 job 임
+jobs:
+  # 구성 및 테스트 단계
+  build:
+    # Ubuntu 환경에서 실행
+    runs-on: ubuntu-latest 
+
+    strategy:
+      matrix:
+        # Node.js 버전을 설정 - 버전을 하나만 할 꺼면 [] 벗겨도 됨
+        node-version: [18.x] 
+
+    steps:
+      # 코드 체크아웃
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      # Node.js 설정
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      # 종속성 설치
+      - name: Install Dependencies
+        run: npm ci
+
+      # 프로젝트 빌드
+      - name: Build (if present)
+        run: npm run build --if-present
+
+      # 테스트 코드 있는 경우 실행(run의 로직은 각 코드에 맞게 설정하면 됨)
+      #- name: Run Tests
+      #  run: # Add your test command here
+
+      # 불필요한 데이터 제거 - 제거하지 않으면 S3 에 올라가는 .zip 용량이 너무 큼
+      - name: Remove Node Modules
+        run: rm -rf node_modules
+
+  # Delivery (배포) 부분        
+  delivery:
+    # build 가 완료되면 실행
+    needs: build
+
+    # Ubuntu 환경에서 실행
+    runs-on: ubuntu-latest 
+
+    steps:
+      # .env 파일 생성 및 환경 변수 설정
+      - name: Create .env file
+        run: |
+          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" > .env
+          echo "JWT_ACCESS_KEY=${{ secrets.JWT_ACCESS_KEY }}" >> .env
+          echo "JWT_REFRESH_KEY=${{ secrets.JWT_REFRESH_KEY }}" >> .env
+          echo "KAKAO_CLIENT_ID=${{ secrets.KAKAO_CLIENT_ID }}" >> .env
+          echo "KAKAO_CLIENT_SECRET=${{ secrets.KAKAO_CLIENT_SECRET }}" >> .env
+          echo "KAKAO_CALLBACK_URL=${{ secrets.KAKAO_CALLBACK_URL }}" >> .env
+          echo "EMAIL_USER=${{ secrets.EMAIL_USER }}" >> .env
+          echo "EMAIL_PASS=${{ secrets.EMAIL_PASS }}" >> .env
+          echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> .env
+          echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_PRIVATE_ACCESS_KEY }}" >> .env
+          echo "AWS_REGION=${{ secrets.AWS_REGION }}" >> .env
+          echo "AWS_BUCKET_NAME=${{ secrets.AWS_BUCKET_NAME }}" >> .env
+          echo "GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" >> .env
+          echo "GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}" >> .env
+          echo "GOOGLE_CALLBACK_URL=${{ secrets.GOOGLE_CALLBACK_URL }}" >> .env
+          echo "NAVER_CLIENT_ID=${{ secrets.NAVER_CLIENT_ID }}" >> .env
+          echo "NAVER_CLIENT_SECRET=${{ secrets.NAVER_CLIENT_SECRET }}" >> .env
+          echo "NAVER_CALLBACK_URL=${{ secrets.NAVER_CALLBACK_URL }}" >> .env
+        working-directory: ./
+
+      # 압축 파일 생성 - 이 부분과 s3 업로드 부분은 같은 job 에 있어야 됨 없으면 업로드 할 .zip 을 못 찾음
+      - name: Zip file
+        run: |
+          zip -qq -r ./$GITHUB_SHA.zip .
+
+      # AWS 자격 증명 설정
+      - name: AWS configure credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_PRIVATE_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      # S3로 업로드
+      - name: Upload to S3
+        run: aws s3 cp ./$GITHUB_SHA.zip s3://$BUCKET_NAME/$PROJECT_NAME/$GITHUB_SHA.zip
+
+      # CodeDeploy 배포 요청
+      - name: Request deploy to CodeDeploy
+        run: aws deploy create-deployment 
+                --application-name $CODE_DEPLOY_APP_NAME
+                --deployment-config-name CodeDeployDefault.AllAtOnce
+                --deployment-group-name $DEPLOYMENT_GROUP_NAME
+                --s3-location bucket=$BUCKET_NAME,bundleType=zip,key=$PROJECT_NAME/$GITHUB_SHA.zip
