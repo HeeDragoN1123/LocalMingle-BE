@@ -16,8 +16,8 @@ mockPrisma = {
 };
 mockCacheManager = {
   get: jest.fn(),
-  set: jest.fn()
-}
+  set: jest.fn(),
+};
 
 mockCacheManager = {};
 eventsService = new EventsService(mockCacheManager, mockPrisma);
@@ -43,44 +43,44 @@ describe('EventsService', () => {
       category: '산책',
       isDeleted: false,
       isVerified: '🙋‍♀️아무나',
-      eventImg: null
+      eventImg: null,
     };
 
-    const createEventData = await eventsService.create(createEventDto)
-    expect(createEventData).toEqual(mockReturn)
+    const createEventData = await eventsService.create(createEventDto);
+    expect(createEventData).toEqual(mockReturn);
     expect(mockPrisma.event.creaet).toHaveBeenCalledWith({
-      data: createEventDto
-    })
+      data: createEventDto,
+    });
   });
 
-  test('findAll Method', async ()=> {
-    const mockReturn = 'findMany Value'
-    mockPrisma.event.findMany.mockReturnValue(mockReturn)
+  test('findAll Method', async () => {
+    const mockReturn = 'findMany Value';
+    mockPrisma.event.findMany.mockReturnValue(mockReturn);
 
-    const page = 1
-    const events = await eventsService.findAll(page)
+    const page = 1;
+    const events = await eventsService.findAll(page);
 
-    expect(events).toBe(mockReturn)
-    expect(eventsService.mockPrisma.event.findMany).toHaveBeenCalledTimes(1) 
-  })
+    expect(events).toBe(mockReturn);
+    expect(eventsService.mockPrisma.event.findMany).toHaveBeenCalledTimes(1);
+  });
 
-  test('findOne Method', async ()=> {
-    const mockReturn = "findOne Value"
-    mockPrisma.event.findUnique.mockReturn(mockReturn)
+  test('findOne Method', async () => {
+    const mockReturn = 'findOne Value';
+    mockPrisma.event.findUnique.mockReturn(mockReturn);
 
-    const result = await eventsService.findOne(1)
-    expect(result).toEqual(mockReturn)
-  })
+    const result = await eventsService.findOne(1);
+    expect(result).toEqual(mockReturn);
+  });
 
-  test('findOne NotFoundException', async ()=> {
-    mockPrisma.event.findUnique.mockReturnValue(null)
+  test('findOne NotFoundException', async () => {
+    mockPrisma.event.findUnique.mockReturnValue(null);
     try {
-      await eventsService.findOne(12345)
+      await eventsService.findOne(12345);
     } catch (err) {
       expect(eventsService.findOne).toHaveBeenCalledTimes(1);
-      expect(eventsService.findOne).toHaveBeenCalledWith(12345)
+      expect(eventsService.findOne).toHaveBeenCalledWith(12345);
 
-      expect(err.message).toEqual(`12345번 이벤트가 없습니다`)
+      expect(err.message).toEqual(`12345번 이벤트가 없습니다`);
     }
-  })
+  });
 });

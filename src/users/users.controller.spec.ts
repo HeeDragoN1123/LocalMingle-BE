@@ -11,7 +11,6 @@ describe('UsersController unit test', () => {
   let controller: UsersController;
   let service: UsersService;
 
-
   const mockPrismaService = {
     // 여기에 필요한 메서드를 mock 구현
   };
@@ -55,26 +54,24 @@ describe('UsersController unit test', () => {
   });
 
   describe('Unit Tests', () => {
-
     // 3. userId를 통한 유저 조회
-  // @Get(':id')
-  // @UseGuards(JwtAccessAuthGuard) // passport를 사용하여 인증 확인
-  // @ApiBearerAuth() // Swagger 문서에 Bearer 토큰 인증 추가
-  // @ApiOperation({ summary: 'ID로 회원 조회' })
-  // @ApiResponse({ status: 200, description: '유저 정보 조회 성공' })
-  // async findOne(@Param('id') id: string) {
-  //   const user = this.usersService.findOne(+id);
-  //   if (!user) {
-  //     throw new NotFoundException('User does not exist');
-  //   }
-  //   return user;
-  // }
+    // @Get(':id')
+    // @UseGuards(JwtAccessAuthGuard) // passport를 사용하여 인증 확인
+    // @ApiBearerAuth() // Swagger 문서에 Bearer 토큰 인증 추가
+    // @ApiOperation({ summary: 'ID로 회원 조회' })
+    // @ApiResponse({ status: 200, description: '유저 정보 조회 성공' })
+    // async findOne(@Param('id') id: string) {
+    //   const user = this.usersService.findOne(+id);
+    //   if (!user) {
+    //     throw new NotFoundException('User does not exist');
+    //   }
+    //   return user;
+    // }
     it('should return a status of 200', () => {
       controller.findOne('1');
       expect(controller.findOne('1')).toBe('1');
     });
   });
-
 });
 
 /* 

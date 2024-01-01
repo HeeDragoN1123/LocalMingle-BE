@@ -9,7 +9,7 @@ export class SearchesService {
   async search(page: number, searchesDto: SearchesDto) {
     return await this.prisma.event.findMany({
       take: 4,
-      skip: page, 
+      skip: page,
       where: {
         isDeleted: false,
         AND: [

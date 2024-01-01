@@ -1,4 +1,10 @@
-import { Controller, Get, Injectable, ParseIntPipe, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Injectable,
+  ParseIntPipe,
+  Query,
+} from '@nestjs/common';
 import { SearchesService } from './searches.service';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { SearchesDto } from './searches.dto/searches.dto';
@@ -11,7 +17,10 @@ export class SearchesController {
 
   @Get()
   @ApiOperation({ summary: '키워드 검색, 카테고리, 지역, 위치인증 필터링' })
-  async searchBy(@Query('page', ParseIntPipe) page:number, @Query() searchesDto: SearchesDto) {
+  async searchBy(
+    @Query('page', ParseIntPipe) page: number,
+    @Query() searchesDto: SearchesDto
+  ) {
     const events = await this.searchesService.search(page, searchesDto);
 
     const event = events.map((item) => {
